@@ -40,7 +40,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
 /*   console.log(data) */
 
-  const pokemos: SmallPokemon[] = data.results.map((poke, i) => ({
+  const pokemons: SmallPokemon[] = data.results.map((poke, i) => ({
     ...poke,
     id: i + 1,
     img: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${i + 1}.svg `
@@ -48,7 +48,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   return {
     props: {
-      pokemons: pokemos
+      pokemons: pokemons
     }
   }
 }
