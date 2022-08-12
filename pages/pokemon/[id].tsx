@@ -1,10 +1,16 @@
-import { Grid, Card, Text, Button, Container, Image } from '@nextui-org/react';
+import React, { useEffect, useState } from 'react'
+
 import { GetStaticProps, NextPage, GetStaticPaths } from 'next';
+
+import { Grid, Card, Text, Button, Container, Image } from '@nextui-org/react';
+
+import confetti from "canvas-confetti";
+
 import { useRouter } from 'next/router';
-import React from 'react'
 import { pokeApi } from '../../api';
 import { Layout } from '../../components/layouts/Layout';
 import { Pokemon } from '../../interfaces/pokemon-full';
+import { getPokemonInfo, localFavorites } from '../../utils';
 
 interface Props {
   pokemon: Pokemon;
@@ -12,7 +18,35 @@ interface Props {
 
 const PokemonPage: NextPage<Props> = ({ pokemon }) => {
 
+  const [isInFavorites, setIsInFavorites] = useState(typeof window === "undefined" && localFavorites.existInFavorites(pokemon.id));
+
+  useEffect(() => {
+    setIsInFavorites(localFavorites.existInFavorites(pokemon.id));
+  }, [pokemon.id]);
+
   /* console.log(pokemon) */
+
+
+  const onToggleFavorites = () => {
+    localFavorites.toggleFavorite(pokemon.id);
+    setIsInFavorites(!isInFavorites);
+
+    if (isInFavorites) return;
+
+    confetti({
+      zIndex: 999,
+      particleCount: 100,
+      spread: 160,
+      angle: -100,
+      origin: {
+        x: 1,
+        y: 0,
+      }
+    })
+  };
+
+  /* console.log({existeWindow: typeof window}) */
+
 
   return (
     <Layout title={pokemon.name}>
@@ -39,9 +73,10 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
               <Text h1 transform='capitalize'>{pokemon.name}</Text>
               <Button
                 color={'gradient'}
-                ghost
+                ghost={!isInFavorites}
+                onClick={onToggleFavorites}
               >
-                Guardar en Favoritos
+                {isInFavorites ? 'Favorito' : 'Guardar en Favoritos'}
               </Button>
             </Card.Header>
 
@@ -49,28 +84,28 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
               <Text size={30}>Sprites:</Text>
               <Container direction="row" display="flex" gap={0}>
                 <Image
-                src={pokemon.sprites.front_default}
-                alt={pokemon.name}
-                width={100}
-                height={100}
+                  src={pokemon.sprites.front_default}
+                  alt={pokemon.name}
+                  width={100}
+                  height={100}
                 />
                 <Image
-                src={pokemon.sprites.back_default}
-                alt={pokemon.name}
-                width={100}
-                height={100}
+                  src={pokemon.sprites.back_default}
+                  alt={pokemon.name}
+                  width={100}
+                  height={100}
                 />
                 <Image
-                src={pokemon.sprites.front_shiny}
-                alt={pokemon.name}
-                width={100}
-                height={100}
+                  src={pokemon.sprites.front_shiny}
+                  alt={pokemon.name}
+                  width={100}
+                  height={100}
                 />
                 <Image
-                src={pokemon.sprites.back_shiny}
-                alt={pokemon.name}
-                width={100}
-                height={100}
+                  src={pokemon.sprites.back_shiny}
+                  alt={pokemon.name}
+                  width={100}
+                  height={100}
                 />
               </Container>
             </Card.Body>
@@ -111,12 +146,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const { id } = params as { id: string };
 
-  const { data } = await pokeApi.get<Pokemon>(`/pokemon/${id}`)
-
+  
   /*   console.log(data) */
   return {
     props: {
-      pokemon: data
+      pokemon: await getPokemonInfo(id)
     }
   }
 }
